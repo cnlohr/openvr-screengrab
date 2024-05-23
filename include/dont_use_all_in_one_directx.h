@@ -1,15 +1,3 @@
-#include <stdio.h>
-#include <math.h>
-
-#define CNFGOGL
-#define CNFG_IMPLEMENTATION
-#include "rawdraw_sf.h"
-
-#undef EXTERN_C
-
-#include "openvr_capi.h"
-
-
 // DirectX Stuff
 
 	typedef enum DXGI_FORMAT
@@ -336,6 +324,13 @@
 		D3D11_MAP_WRITE_DISCARD = 4,
 		D3D11_MAP_WRITE_NO_OVERWRITE = 5
 	} D3D11_MAP;
+	typedef enum D3D11_RESOURCE_DIMENSION {
+		D3D11_RESOURCE_DIMENSION_UNKNOWN = 0,
+		D3D11_RESOURCE_DIMENSION_BUFFER = 1,
+		D3D11_RESOURCE_DIMENSION_TEXTURE1D = 2,
+		D3D11_RESOURCE_DIMENSION_TEXTURE2D = 3,
+		D3D11_RESOURCE_DIMENSION_TEXTURE3D = 4
+	} D3D11_RESOURCE_DIMENSION;
 	typedef enum D3D11_DEVICE_CONTEXT_TYPE {
 		D3D11_DEVICE_CONTEXT_IMMEDIATE = 0,
 		D3D11_DEVICE_CONTEXT_DEFERRED = 1
@@ -382,7 +377,7 @@
 		D3D11_BIND_UNORDERED_ACCESS = 0x80L,
 		D3D11_BIND_DECODER = 0x200L,
 		D3D11_BIND_VIDEO_ENCODER = 0x400L
-	} ;
+	} D3D11_BIND_FLAG;
 	typedef enum D3D11_UAV_DIMENSION {
 		D3D11_UAV_DIMENSION_UNKNOWN = 0,
 		D3D11_UAV_DIMENSION_BUFFER = 1,
@@ -450,6 +445,10 @@
 		D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR = 0x195,
 		D3D11_FILTER_MAXIMUM_ANISOTROPIC = 0x1d5
 	} D3D11_FILTER;
+	typedef enum D3D11_CPU_ACCESS_FLAG {
+		D3D11_CPU_ACCESS_WRITE = 0x10000L,
+		D3D11_CPU_ACCESS_READ = 0x20000L
+	} D3D11_CPU_ACCESS_FLAG;
 	typedef enum D3D11_TEXTURE_ADDRESS_MODE {
 		D3D11_TEXTURE_ADDRESS_WRAP = 1,
 		D3D11_TEXTURE_ADDRESS_MIRROR = 2,
@@ -889,14 +888,15 @@
 		D3D11_COUNTER_TYPE_UINT32 = 2,
 		D3D11_COUNTER_TYPE_UINT64 = 3
 	} D3D11_COUNTER_TYPE;
+	
+
+
 	#define D3D11_SDK_VERSION 7
 	typedef void * ID3D11Buffer;
-	typedef void * ID3D11ShaderResourceView;
 	typedef void * ID3D11PixelShader;
 	typedef void * ID3D11ClassInstance;
 	typedef void * ID3D11SamplerState;
 	typedef void * ID3D11VertexShader;
-	typedef void * ID3D11Resource;
 	typedef void * ID3D11InputLayout;
 	typedef void * ID3D11GeometryShader;
 	typedef void * ID3D11Asynchronous;
@@ -912,14 +912,16 @@
 	typedef void * ID3D11DomainShader;
 	typedef void * ID3D11ComputeShader;
 	typedef void * ID3D11Texture1D;
-	typedef void * ID3D11Texture2D;
+	typedef struct ID3D11Texture2D ID3D11Texture2D;
 	typedef void * ID3D11Texture3D;
 	typedef void * ID3D11ClassLinkage;
 	typedef void * IDXGIAdapter;
-	typedef void * ID3D11Device;
 	typedef void * ID3D11Query;
 	typedef void * ID3D11Counter;
-	
+	typedef struct ID3D11Device ID3D11Device;
+	typedef struct ID3D11ShaderResourceView ID3D11ShaderResourceView;
+	typedef struct ID3D11Resource ID3D11Resource;
+
 	typedef struct ID3D11DeviceContextVtbl ID3D11DeviceContext;
 	typedef struct ID3D11DeviceContextVtbl {
 
@@ -1845,151 +1847,123 @@
 		enum D3D_FEATURE_LEVEL  *pFeatureLevel,
 		ID3D11DeviceContext     **ppImmediateContext
 	);
+	
+	struct ID3D11Device
+	{
+		CONST_VTBL ID3D11DeviceVtbl* lpVtbl;
+	};
 
 
+	typedef struct ID3D11ResourceVtbl {
+		/*** IUnknown methods ***/
+		HRESULT (STDMETHODCALLTYPE *QueryInterface)(
+			ID3D11Resource *This,
+			REFIID riid,
+			void **ppvObject);
+
+		ULONG (STDMETHODCALLTYPE *AddRef)(
+			ID3D11Resource *This);
+
+		ULONG (STDMETHODCALLTYPE *Release)(
+			ID3D11Resource *This);
+
+		/*** ID3D11DeviceChild methods ***/
+		void (STDMETHODCALLTYPE *GetDevice)(
+			ID3D11Resource *This,
+			ID3D11Device **ppDevice);
+
+		HRESULT (STDMETHODCALLTYPE *GetPrivateData)(
+			ID3D11Resource *This,
+			REFGUID guid,
+			UINT *pDataSize,
+			void *pData);
+
+		HRESULT (STDMETHODCALLTYPE *SetPrivateData)(
+			ID3D11Resource *This,
+			REFGUID guid,
+			UINT DataSize,
+			const void *pData);
+
+		HRESULT (STDMETHODCALLTYPE *SetPrivateDataInterface)(
+			ID3D11Resource *This,
+			REFGUID guid,
+			const IUnknown *pData);
+
+		/*** ID3D11Resource methods ***/
+		void (STDMETHODCALLTYPE *GetType)(
+			ID3D11Resource *This,
+			D3D11_RESOURCE_DIMENSION *pResourceDimension);
+
+		void (STDMETHODCALLTYPE *SetEvictionPriority)(
+			ID3D11Resource *This,
+			UINT EvictionPriority);
+
+		UINT (STDMETHODCALLTYPE *GetEvictionPriority)(
+			ID3D11Resource *This);
+
+	} ID3D11ResourceVtbl;
+
+	struct ID3D11Resource {
+		ID3D11ResourceVtbl* lpVtbl;
+	};
+
+
+	typedef struct ID3D11ShaderResourceView ID3D11ShaderResourceView;
+	
+	typedef struct ID3D11ShaderResourceViewVtbl {
+
+		/*** IUnknown methods ***/
+		HRESULT (STDMETHODCALLTYPE *QueryInterface)(
+			ID3D11ShaderResourceView *This,
+			REFIID riid,
+			void **ppvObject);
+
+		ULONG (STDMETHODCALLTYPE *AddRef)(
+			ID3D11ShaderResourceView *This);
+
+		ULONG (STDMETHODCALLTYPE *Release)(
+			ID3D11ShaderResourceView *This);
+
+		/*** ID3D11DeviceChild methods ***/
+		void (STDMETHODCALLTYPE *GetDevice)(
+			ID3D11ShaderResourceView *This,
+			ID3D11Device **ppDevice);
+
+		HRESULT (STDMETHODCALLTYPE *GetPrivateData)(
+			ID3D11ShaderResourceView *This,
+			REFGUID guid,
+			UINT *pDataSize,
+			void *pData);
+
+		HRESULT (STDMETHODCALLTYPE *SetPrivateData)(
+			ID3D11ShaderResourceView *This,
+			REFGUID guid,
+			UINT DataSize,
+			const void *pData);
+
+		HRESULT (STDMETHODCALLTYPE *SetPrivateDataInterface)(
+			ID3D11ShaderResourceView *This,
+			REFGUID guid,
+			const IUnknown *pData);
+
+		/*** ID3D11View methods ***/
+		void (STDMETHODCALLTYPE *GetResource)(
+			ID3D11ShaderResourceView *This,
+			ID3D11Resource **ppResource);
+
+		/*** ID3D11ShaderResourceView methods ***/
+		void (STDMETHODCALLTYPE *GetDesc)(
+			ID3D11ShaderResourceView *This,
+			D3D11_SHADER_RESOURCE_VIEW_DESC *pDesc);
+	} ID3D11ShaderResourceViewVtbl;
+
+	struct ID3D11ShaderResourceView {
+		ID3D11ShaderResourceViewVtbl* lpVtbl;
+	};
+
+
+
+	DEFINE_GUID(IID_ID3D11Texture2D, 0x6f15aaf2, 0xd208, 0x4e89, 0x9a,0xb4, 0x48,0x95,0x35,0xd3,0x4f,0x9c);
 	enum D3D_FEATURE_LEVEL pFeatureLevels[1] = { D3D_FEATURE_LEVEL_11_0 };
 	enum D3D_FEATURE_LEVEL pOutFeatureLevels;
 	
-	
-intptr_t VR_InitInternal( EVRInitError *peError, EVRApplicationType eType );
-void VR_ShutdownInternal();
-bool VR_IsHmdPresent();
-intptr_t VR_GetGenericInterface( const char *pchInterfaceVersion, EVRInitError *peError );
-bool VR_IsRuntimeInstalled();
-const char * VR_GetVRInitErrorAsSymbol( EVRInitError error );
-const char * VR_GetVRInitErrorAsEnglishDescription( EVRInitError error );
-
-void HandleKey( int keycode, int bDown ) { }
-void HandleButton( int x, int y, int button, int bDown ) { }
-void HandleMotion( int x, int y, int mask ) { }
-int HandleDestroy() { return 0; }
-
-// This function was copy-pasted from cnovr.
-void * GetOpenVRFunctionTable( const char * interfacename )
-{
-	EVRInitError e;
-	char fnTableName[128];
-	int result1 = snprintf( fnTableName, 128, "FnTable:%s", interfacename );
-	void * ret = (void *)VR_GetGenericInterface( fnTableName, &e );
-	printf( "Getting System FnTable: %s = %p (%d)\n", fnTableName, ret, e );
-	if( !ret )
-	{
-		exit( 1 );
-	}
-	return ret;
-}
-
-int main()
-{
-	EVRInitError eError = 0;
-	uint32_t token = VR_InitInternal( &eError, EVRApplicationType_VRApplication_Overlay );
-	if( !token || eError )
-	{
-		fprintf( stderr, "Error: can't init OpenVR\n" );
-		return -1;
-	}
-
-	struct VR_IVRCompositor_FnTable * oCompositor = GetOpenVRFunctionTable( IVRCompositor_Version );
-	if( !oCompositor )
-	{
-		fprintf( stderr, "Error: can't get OpenVR interface\n" );
-		return -2;
-	}
-
-	struct VR_IVROverlay_FnTable * oOverlay = GetOpenVRFunctionTable( IVROverlay_Version );
-	if( !oOverlay )
-	{
-		fprintf( stderr, "Error: can't get OpenVR interface\n" );
-		return -2;
-	}
-
-	if( CNFGSetup( "Texture Cap Test", 256, 512 ) )
-	{
-		fprintf( stderr, "Error: Could not open debug window\n" );
-		return -3;
-	}
-
-
-	char cts[1024];
-	int frameno = 0;
-
-	ID3D11Device * pDevice;
-	ID3D11DeviceContext * pDeviceContext;
-	HRESULT hr;
-	hr = D3D11CreateDevice(
-		0,
-		D3D_DRIVER_TYPE_HARDWARE,
-		0,
-		0,
-		0,
-		0,
-		D3D11_SDK_VERSION,
-		&pDevice,
-		&pOutFeatureLevels,
-		&pDeviceContext );
-	ID3D11DeviceVtbl * pDeviceFn = (ID3D11DeviceVtbl*)(((uint8_t*)pDevice)+0);
-
-	printf( "D3D11CreateDevice: %08x %p %p\n", hr, pDeviceContext, pDevice );
-
-	ID3D11Texture2D texture2DID = 0;
-	int tw = 1024;
-	int th = 1024;
-    D3D11_TEXTURE2D_DESC texDesc;
-	ZeroMemory(&texDesc, sizeof(D3D11_TEXTURE2D_DESC));
-
-	texDesc.Width = tw;
-	texDesc.Height = th;
-	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
-	texDesc.Usage = D3D11_USAGE_DEFAULT;
-	texDesc.SampleDesc.Count = 1;
-	texDesc.SampleDesc.Quality = 0;
-	texDesc.CPUAccessFlags = 0;
-	texDesc.ArraySize = 1;
-	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-	texDesc.MiscFlags = 0;
-	texDesc.MipLevels = 1;
-	printf( "Creating Texture %p", pDeviceFn->CreateTexture2D );
-	hr = pDeviceFn->CreateTexture2D( pDevice, &texDesc, NULL, &texture2DID);
-	printf( "HR: %08x DEV: %08x\n", hr, texture2DID );
-
-	while( CNFGHandleInput() )
-	{
-		CNFGClearFrame();
-		
-		CNFGPenX = 50;
-		CNFGPenY = 0;
-		
-		CNFGColor( 0xffffffff );
-		
-		void * pD3D11ShaderResourceView;
-		EVRCompositorError ce = oCompositor->GetMirrorTextureD3D11( EVREye_Eye_Left, pDevice, &pD3D11ShaderResourceView );
-
-		
-		pDeviceContext->Draw( pDeviceContext, 6, 0 );
-							
-//		printf( "RESOURCE VIEW: %p\n", pD3D11ShaderResourceView );
-//		D3D11_MAPPED_SUBRESOURCE mappedResource = { 0 };
-//		hr = pDeviceContext->Map( pDeviceContext, pD3D11ShaderResourceView, 0, D3D11_MAP_READ, 0, &mappedResource );
-//		printf( "HR: %08x\n" );
-//		uint32_t *dataPtr = ( uint32_t * )mappedResource.pData;
-		//			UpdateConstantBuffer( nEye, nLayer, bPrimary, ( float * )mappedResource.pData );
-	//				dataPtr[5] = (float)m_pVideoEnc->m_nActualEncodeHeight - CLOCK_HEIGHT_PX;
-//		pDeviceContext->Unmap( pDeviceContext, pD3D11ShaderResourceView, 0 );
-
-
-		printf( "CE: %d\n", ce );
-		oCompositor->ReleaseMirrorTextureD3D11( pD3D11ShaderResourceView );
-
-		
-		sprintf( cts, "%d\n", frameno );
-		CNFGDrawText( cts, 2 );
-		
-		CNFGSwapBuffers();
-		frameno++;
-
-		//struct VREvent_t nEvent;
-		//if( overlayID ) oOverlay->PollNextOverlayEvent( overlayID, &nEvent, 0xffffff );
-		Sleep(400);
-	}
-	return 0;
-}
