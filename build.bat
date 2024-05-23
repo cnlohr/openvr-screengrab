@@ -1,0 +1,1 @@
+tcc screencap.c -I. openvr_api.dll -o screencap.exe C:\\Windows\\System32\\opengl32.dll C:\\Windows\\System32\\gdi32.dll C:\\Windows\\System32\\user32.dll C:\\Windows\\SysWOW64\\d3d11.dll C:\\Windows\\System32\\user32.dll C:\\Windows\\SysWOW64\\dxgi.dll
