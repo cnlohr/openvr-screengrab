@@ -9,7 +9,7 @@ In general:
 4. Now here's an example for how to grab what the user is seeing with OpenVR.
 5. I finally have an example doing DirectX stuff in C.
 
-<IMG SRC=https://github.com/cnlohr/openvr-screengrab/blob/master/openvr-screengrab.png?raw=true>
+![screenshot](https://github.com/cnlohr/openvr-screengrab/blob/master/openvr-screengrab.png?raw=true)
 
 
 ## Prerequisites
