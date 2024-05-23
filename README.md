@@ -9,4 +9,11 @@ In general:
 4. Now here's an example for how to grab what the user is seeing with OpenVR.
 5. I finally have an example doing DirectX stuff in C.
 
+![screenshot](https://raw.githubusercontent.com/cnlohr/openvr-screengrab/master/openvr-screengrab.png)
 
+
+## Prerequisites
+
+You will need the 3.8MB TinyCC Toolchain, available here: https://github.com/cnlohr/tinycc-win64-installer/releases/tag/v0_0.9.27 Install to a system-reachable path.
+
+SteamVR 1.27 or higher.
