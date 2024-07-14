@@ -1,6 +1,6 @@
 # openvr-screengrab
 
-Example using C to use the OpenVR GetMirrorTextureD3D11 and process it.
+Example using C to use the OpenVR GetMirrorTextureD3D11 and process it.  Also more in general a "how to use directx with c" for certain values of DirectX.
 
 In general:
 1. You get the system layer, so things like chaperone will draw on top, and you won't be pixel perfect from what the game gives you.
